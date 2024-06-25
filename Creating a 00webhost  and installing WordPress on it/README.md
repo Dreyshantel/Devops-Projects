@@ -54,7 +54,7 @@ This project is a documentation guide on how to create an account on 000webhost 
 
 6. **Review and launch:**
 
-  - Review the configuration and launch the instance.
+   - Review the configuration and launch the instance.
     ![Screenshot (271)](https://github.com/Dreyshantel/Devops-Projects/assets/109143806/53003358-87fb-40e5-a11d-5cf1561d3e6a)
    
 7. **Connect to Your EC2 Instance:**
@@ -63,7 +63,7 @@ This project is a documentation guide on how to create an account on 000webhost 
       ![Screenshot (273)](https://github.com/Dreyshantel/Devops-Projects/assets/109143806/1df9440f-d300-4522-956c-2a651dc7e471)
 
 
-### Step 3: Install Wordpress
+### Step 3: Update Package Repository and install LAMP stack
 1. **Update package repository**
    ```
    sudo apt update
@@ -80,11 +80,59 @@ This project is a documentation guide on how to create an account on 000webhost 
 - MySQL: Relational database management system (RDBMS) used to store and manage data
 - PHP: a server-side scripting language used to create a dynamic web pages
 
-install lamp stack using the following command below:
-```
-sudo apt install apache2 mysql-server php libapache2-mod-php php-mysql
-```
-![Screenshot (276)](https://github.com/Dreyshantel/Devops-Projects/assets/109143806/c3b55507-fec1-4191-8d89-98bb3a51047f)
-![Screenshot (277)](https://github.com/Dreyshantel/Devops-Projects/assets/109143806/b73d022f-3e53-42b0-9157-1fa2e86ae1e3)
+3. **Update Packages:**
+   ```
+   sudo apt update
+   sudo apt upgrade
+   ```
+   ![Screenshot (285)](https://github.com/Dreyshantel/Devops-Projects/assets/109143806/b20d5fdb-160c-46f2-b0c1-bf18371c1e92)
+   ![Screenshot (286)](https://github.com/Dreyshantel/Devops-Projects/assets/109143806/6880e19c-20af-4b2a-9544-68f711aa6650)
 
-3. **Create MySQL Database and User:**
+
+4. **Install Apache:**
+- Install and enable apache2 using the command below:
+```
+sudo apt install apache2
+```
+![Screenshot (285)](https://github.com/Dreyshantel/Devops-Projects/assets/109143806/3d0f318a-3ef9-48e0-91ec-db94f5969142)
+ - Start, enable apache2 and check status if it's running successfully.
+![Screenshot (287)](https://github.com/Dreyshantel/Devops-Projects/assets/109143806/eeb06d05-092d-493e-ac34-6ca35af0e825)
+
+ - Now we will check if our apache is successfully running on the web using our domain or public IP address
+  ![image](https://github.com/Dreyshantel/Devops-Projects/assets/109143806/02aed82d-f93f-438c-add4-a6146d5814d3)
+
+  
+
+5. **Install MySQL**
+   ```
+   sudo apt install mysql-server
+   ```
+   ![Screenshot (292)](https://github.com/Dreyshantel/Devops-Projects/assets/109143806/f80ec909-e1db-409d-a45a-933bb91652e6)
+
+Run a interactive secure installation using the following code below:
+```
+    sudo mysql_secure_installation
+```
+![Screenshot (290)](https://github.com/Dreyshantel/Devops-Projects/assets/109143806/ccd35090-dbcb-43ec-886d-f6f6746c78e6)
+![Screenshot (291)](https://github.com/Dreyshantel/Devops-Projects/assets/109143806/3609015d-1d90-42ba-81c7-40f0b85a7991)
+
+6. **Install PHP**
+Installing PHP and it's component/module with 'sudo apt install php libapache2-mod-php php-mysql', and check php version with 'sudo php -v' command.
+```
+sudo apt install php libapache2-mod-php php-mysql
+```
+![image](https://github.com/Dreyshantel/Devops-Projects/assets/109143806/ea2a1a13-7fa0-4413-acea-cd7bdbec61a6)
+ - Restart Apache2
+```
+sudo systemctl restart apache2
+```
+### Step 4: Part 4: Install WordPress
+1. **Download WordPress:**
+   - Install Wordpress  and untar its file using the following command below.
+   ```
+   wget -c http://wordpress.org/latest.tar.gz
+   tar -xzvf latest.tar.gz
+   ```
+   ![Screenshot (296)](https://github.com/Dreyshantel/Devops-Projects/assets/109143806/9658a87e-8428-4f39-9761-3851d8c41e29)
+![Screenshot (297)](https://github.com/Dreyshantel/Devops-Projects/assets/109143806/2fe40805-c6bb-460b-b992-c07137c5b7f8)
+
