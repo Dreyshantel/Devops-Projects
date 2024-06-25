@@ -136,3 +136,57 @@ sudo systemctl restart apache2
    ![Screenshot (296)](https://github.com/Dreyshantel/Devops-Projects/assets/109143806/9658a87e-8428-4f39-9761-3851d8c41e29)
 ![Screenshot (297)](https://github.com/Dreyshantel/Devops-Projects/assets/109143806/2fe40805-c6bb-460b-b992-c07137c5b7f8)
 
+2. **Set Up WordPress:**
+Move the WordPress files to the Apache root directory:
+```
+sudo rsync -avP ~/wordpress/ /var/www/html/
+```
+3. **Set the correct permissions:**
+```
+   sudo chown -R www-data:www-data /var/www/html/
+   sudo chmod -R 755 /var/www/html/
+```
+### Step 5: Create a WordPress Database
+1. **Log in to MySQL:**
+   ```
+   sudo mysql -u root -p
+   ```
+![Screenshot (296)](https://github.com/Dreyshantel/Devops-Projects/assets/109143806/1442b8cc-3897-4f87-9bc2-d52f07853f12)
+
+2. **Create a database and user for WordPress**
+```
+CREATE DATABASE wordpress;
+CREATE USER 'wordpressuser'@'localhost' IDENTIFIED BY 'yourpassword';
+GRANT ALL PRIVILEGES ON wordpress.* TO 'wordpressuser'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
+![Screenshot (297)](https://github.com/Dreyshantel/Devops-Projects/assets/109143806/9204e249-eb97-4dc1-9f8b-01512ec87b27)
+
+### Step 6: Configure WordPress
+1. **Rename the sample configuration file:**
+```
+cd /var/www/html
+sudo mv wp-config-sample.php wp-config.php
+```
+2. **Edit the wp-config.php fil**
+```
+sudo nano wp-config.php
+```
+![Screenshot (301)](https://github.com/Dreyshantel/Devops-Projects/assets/109143806/5fe5722b-8414-4d9c-8a54-1a841a65de76)
+
+3. **Set the database details**
+ ```
+define('DB_NAME', 'wordpress');
+define('DB_USER', 'wordpressuser');
+define('DB_PASSWORD', 'yourpassword');
+define('DB_HOST', 'localhost');
+ ```
+![Screenshot (300)](https://github.com/Dreyshantel/Devops-Projects/assets/109143806/754ad69f-d64a-4774-ae07-a95886eaec67)
+
+4. **Complete WordPress Installation via Web Browser:**
+   - Open a web browser and navigate to http://your-instance-public-ip.
+   - Follow the on-screen instructions to complete the WordPress installation.
+
+
+   
