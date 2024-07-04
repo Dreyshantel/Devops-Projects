@@ -1,3 +1,5 @@
+# Stage One Task Documentation
+
 This project is a documentation guide to Creating a `create_users.sh` script to read a text file containing usernames and group names, and then create users and groups based on this information involves several steps. Below is a step-by-step guide to achieve this:
 
 
