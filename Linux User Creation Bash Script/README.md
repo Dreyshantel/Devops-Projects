@@ -1,6 +1,7 @@
 # Stage One Task Documentation
+### Automating User and Group Management with Bash
 
-This project is a documentation guide to Creating a `create_users.sh` script to read a text file containing usernames and group names, and then create users and groups based on this information involves several steps. Below is a step-by-step guide to achieve this:
+As a SysOps engineer, efficiently managing user accounts is vital, especially when onboarding numerous new developers. This article introduces a Bash script tailored to automate the process of user creation, group assignment, home directory setup, and secure password management. Utilizing this script not only ensures consistency across user accounts but also significantly reduces the manual workload for system administrators.
 
 
 ### Step 1: create a log file in /var/log/user_management.log
@@ -145,15 +146,16 @@ vim employeefile.txt
 ```
 3. Add user information in the format "user,group1, group2'
 ```
-John;developers,designers
-Tolu;developers
-Fred;designers
+light; sudo.dev,www-data
+idinma;dev
+mayowa;dev, www-data
 ```
 ### Step 7: Execute the script
 ```
 sudo bash ./create_user.sh employeefile.txt
 ```
-![Screenshot (399)](https://github.com/Dreyshantel/Devops-Projects/assets/109143806/28cfaa56-25b3-49da-8b2f-4e884643cd59)
+![Screenshot (402)](https://github.com/Dreyshantel/Devops-Projects/assets/109143806/a7475f31-4452-4768-a605-a633ca8ad578)
+
 
 Check the log file
 ```
@@ -164,4 +166,5 @@ check the users' passwords
 sudo cat /var/secure/user_passwords.txt
 ```
 
-![Screenshot (400)](https://github.com/Dreyshantel/Devops-Projects/assets/109143806/51c53e5a-e6a1-4a8b-a20c-d42be416eabb)
+![Screenshot (403)](https://github.com/Dreyshantel/Devops-Projects/assets/109143806/5f207008-560d-43b1-97b3-0872b7d4e8b6)
+
