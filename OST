@@ -1,1 +1,583 @@
+# Dockerized Full Stack Web Application Deployment
 
+### Overview
+
+This project is a documentation guide on how to deploy a full stack web application (React frontend and FastAPI + PostgreSQL backend) using Docker containers and proxy both services to run on the same port using Traefik or Nginx Proxy Manager.
+
+
+
+### Components
+
+
+
+### Step by Step Guide on how to Deploy a Full Stack Web Application Using Docker and Taefik/Nginx proxy manager
+
+#### Fork the repository
+
+1. **Fork the repository:**
+
+   - Go to the original repository on Github
+   - Click on the "Fork" button at the top right corner to create a fork of the repository in your own GitHub account.
+
+2. **Clone the forked repository:**
+
+   ```
+   git clone https://github.com/Dreyshantel/HNG-DevOps-stage-two-project.git
+   
+   ```
+
+3. **Add the new repository as a remote:**
+
+   - clone your original repository to your local machine
+
+     ```
+     git clone https://github.com/Dreyshantel/HNG-Devops-stage-two-project
+     ```
+
+4. **Push to the new repository**
+
+   - Push all branch and tags to the new repository
+
+   ```
+   git push new-origin --all
+   git push new-origin --tags
+   ```
+
+   
+
+#### Dockerization
+
+##### Creating Docker files for React Frontend
+
+1. **Create a directory for React Frontend and navigate to the Frontend directory**
+   This step involves organizing your project files by creating a specific directory for your React frontend application. This structure helps in maintaining a clean and manageable project, especially when dealing with a full-stack application that might include both frontend and backend components. By navigating to the frontend directory, you isolate your work environment to focus specifically on the frontend development.
+
+   - Navigate to your React project directory: open a terminal and navigate to the root directory of your React project.
+
+   ```
+   npx create-react-app react_frontend
+   cd react_frontend
+   ```
+
+   ![](C:\Users\Shantel\Pictures\Screenshots\Screenshot (421).png) 
+
+   
+
+   2. **Set Up Environment Variables:** 
+      Environment variables are used to store configuration settings and sensitive information such as API keys, database URLs, and other configuration settings. By creating a `.env` file, you ensure that these variables are stored in a separate file rather than hard-coding them into your application's source code. This approach enhances security and allows for easier configuration changes across different environments (development, staging, production).
+
+      - Create an .env file and paste the following content into it:
+
+        ```
+        VITE_API_URL=http://localhost:8000
+        ```
+
+        
+
+   3. **Check and Update Configuration Files:** Ensure that your TypeScript and Vite configurations are correct.
+
+      - tsconfig.json:
+
+   ​          Open tsconfig.json and input the following content:
+
+   ```
+   {
+     "compilerOptions": {
+       "target": "ES2020",                              // Set the target ECMAScript version
+       "module": "ESNext",                              // Specify the module code generation
+       "moduleResolution": "node",                      // Use node-specific module resolution
+       "strict": true,                                  // Enable all strict type-checking options
+       "esModuleInterop": true,                         // Enable compatibility with CommonJS modules
+       "forceConsistentCasingInFileNames": true,        // Ensure file names have consistent casing
+       "useDefineForClassFields": true,                 // Enable class fields with the `define` keyword
+       "lib": ["ES2020", "DOM", "DOM.Iterable"],        // Include standard library and DOM definitions
+       "skipLibCheck": true,                            // Skip type checking of declaration files
+       "allowImportingTsExtensions": true,              // Allow imports of TypeScript files with extensions
+       "resolveJsonModule": true,                       // Enable importing JSON modules
+       "isolatedModules": true,                         // Ensure each file can be transpiled separately
+       "noEmit": true,                                  // Do not emit output files
+       "jsx": "react-jsx",                              // Use React's new JSX transform
+       "noUnusedLocals": true,                          // Report errors on unused locals
+       "noUnusedParameters": true,                      // Report errors on unused parameters
+       "noFallthroughCasesInSwitch": true,              // Report errors for fallthrough cases in switch statements
+       "allowSyntheticDefaultImports": true,            // Allow default imports from modules with no default export
+       "skipDefaultLibCheck": true                      // Skip type checking of the default library
+     },
+     "include": ["src"],                                // Include the source files in the compilation
+     "exclude": ["node_modules", "build", "dist"],      // Exclude unnecessary directories
+     "references": [{ "path": "./tsconfig.node.json" }] // Reference another tsconfig file
+   }
+   
+   ```
+
+   - **tsconfig.node.json**
+
+   Open tsconfig.node.json file and paste the following content below into :
+
+   ```
+   {
+     "compilerOptions": {
+       "target": "ES2020",                              // Use modern ECMAScript features
+       "composite": true,                               // Enable project references
+       "skipLibCheck": true,                            // Skip type checking of declaration files
+       "module": "ESNext",                              // Use the latest ECMAScript module syntax
+       "moduleResolution": "bundler",                   // Use bundler-specific module resolution
+       "allowSyntheticDefaultImports": true,            // Allow default imports from modules with no default export
+       "esModuleInterop": true,                         // Enable interoperability between CommonJS and ES Modules
+       "resolveJsonModule": true,                       // Enable importing JSON files
+       "strict": true,                                  // Enable strict type checking
+       "forceConsistentCasingInFileNames": true         // Ensure consistent casing in file names
+     },
+     "include": ["vite.config.ts"],                      // Include the Vite configuration file
+     "exclude": ["node_modules", "dist", "build"]        // Exclude unnecessary directories
+   }
+   ```
+
+   - **Vite.config.ts:**
+
+   ```
+   import { defineConfig } from 'vite';
+   import react from '@vitejs/plugin-react-swc';
+   import { TanStackRouterVite } from '@tanstack/router-vite-plugin';
+   import tsconfigPaths from 'vite-tsconfig-paths';
+   import { visualizer } from 'rollup-plugin-visualizer';
+   import viteCompression from 'vite-plugin-compression';
+   
+   // https://vitejs.dev/config/
+   export default defineConfig({
+     plugins: [
+       react(),                          // Enables SWC-powered React plugin
+       TanStackRouterVite(),             // TanStack Router Vite plugin for routing
+       tsconfigPaths(),                  // Plugin to support TypeScript paths from tsconfig
+       visualizer({                      // Plugin to visualize bundle size
+         filename: './dist/stats.html',
+         open: true,
+       }),
+       viteCompression(),                // Plugin to compress output files
+     ],
+     resolve: {
+       alias: {
+         '@': '/src',                    // Alias for the src directory
+       },
+     },
+     build: {
+       sourcemap: true,                  // Enable source maps for debugging
+       outDir: 'dist',                   // Output directory for build
+       rollupOptions: {
+         output: {
+           manualChunks(id) {
+             if (id.includes('node_modules')) {
+               return id.toString().split('node_modules/')[1].split('/')[0].toString();
+             }
+           },
+         },
+       },
+     },
+     server: {
+       open: true,                       // Automatically open the app in the browser on server start
+       port: 3000,                       // Port number for dev server
+     },
+     optimizeDeps: {
+       include: ['react', 'react-dom'],  // Pre-bundle dependencies
+     },
+   }),
+   ```
+
+   
+
+   **Update .gitignore:** 
+   Ensure that your `.gitignore` file includes common ignore patterns.
+
+   - edit .gitignore file and paste the following content below into the file:
+
+   ```
+   # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+   
+   # dependencies
+   /node_modules
+   /.pnp
+   .pnp.js
+   
+   # testing
+   /coverage
+   
+   # production
+   /build
+   /dist
+   /dist-ssr
+   
+   # misc
+   .DS_Store
+   .env.local
+   .env.development.local
+   .env.test.local
+   .env.production.local
+   
+   npm-debug.log*
+   yarn-debug.log*
+   yarn-error.log*
+   pnpm-debug.log*
+   lerna-debug.log*
+   
+   # logs
+   logs/
+   *.log
+   
+   # local environment files
+   *.local
+   
+   # generated files
+   openapi.json
+   
+   # editor directories and files
+   .vscode/
+   !.vscode/extensions.json
+   .idea/
+   *.suo
+   *.ntvs*
+   *.njsproj
+   *.sln
+   *.sw?
+   
+   ```
+
+   **Add project script**
+
+   Make sure your `package.json` has the necessary scripts to run and build your project.
+
+   ```
+   {
+     "name": "react_frontend",
+     "version": "0.1.0",
+     "private": true,
+     "dependencies": {
+       "@testing-library/jest-dom": "^5.17.0",
+       "@testing-library/react": "^13.4.0",
+       "@testing-library/user-event": "^13.5.0",
+       "react": "^18.3.1",
+       "react-dom": "^18.3.1",
+       "web-vitals": "^2.1.4"
+     },
+     "devDependencies": {
+       "@tanstack/router-vite-plugin": "^1.0.0",
+       "@vitejs/plugin-react-swc": "^3.7.0",
+       "react-scripts": "^5.0.1",
+       "rollup-plugin-visualizer": "^5.0.0",
+       "typescript": "^5.5.3",
+       "vite": "^4.0.0",
+       "vite-plugin-compression": "^0.5.1",
+       "vite-plugin-tsconfig-paths": "^1.4.1",
+       "vite-tsconfig-paths": "^4.3.2"
+     },
+     "scripts": {
+       "dev": "react-scripts start",
+       "start": "vite",
+       "build": "vite build",
+       "serve": "vite preview",
+       "test": "react-scripts test",
+       "eject": "react-scripts eject"
+     },
+     "eslintConfig": {
+       "extends": [
+         "react-app",
+         "react-app/jest"
+       ]
+     },
+     "browserslist": {
+       "production": [
+         ">0.2%",
+         "not dead",
+         "not op_mini all"
+       ],
+       "development": [
+         "last 1 chrome version",
+         "last 1 firefox version",
+         "last 1 safari version"
+       ]
+     }
+   }
+   
+   ```
+
+   #### Add HTML configuration 
+
+   This HTML file is a template for your React application. It provides the basic structure and configuration needed for your React app to run in a web browser. 
+
+   - Open your index.html file in a text editor and input the following content:
+
+   ```
+   <!DOCTYPE html>
+   <html lang="en">
+     <head>
+       <meta charset="UTF-8" />
+       <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+       <title>Full Stack FastAPI Project</title>
+       <link rel="icon" type="image/x-icon" href="/assets/images/favicon.png" />
+     </head>
+     <body>
+       <div id="root"></div>
+       <script type="module" src="./src/main.tsx"></script>
+     </body>
+   </html>
+   ```
+
+   
+
+   **Create a Docker file**
+
+   - In the root directory of your react project, create a file named Dockerfile. 
+
+     ```
+     touch Dockerfile
+     ```
+
+   - Open the Docker file in a text editor and add the following content below:
+
+   ```
+   # Use an official Node runtime as a parent image
+   FROM node:14-alpine AS build
+   
+   # Set the working directory
+   WORKDIR /app
+   
+   # Copy package.json and package-lock.json
+   COPY package*.json ./
+   
+   # Install dependencies
+   RUN npm install
+   
+   # Copy the rest of the application code
+   COPY . .
+   
+   # Build the React app
+   RUN npm run build
+   
+   # Stage 2: Serve the app from Nginx
+   FROM nginx:alpine
+   COPY --from=build /app/build /usr/share/nginx/html
+   EXPOSE 80
+   CMD ["nginx", "-g", "daemon off;"]
+   
+   ```
+
+   ![](C:\Users\Shantel\Pictures\Screenshots\Screenshot (404).png)
+
+   
+
+2. Build and run the Docker container
+
+   ```
+   docker build -t react-frontend .
+   docker run -d -p 3000:80 react-frontend
+   ```
+
+   4. **Check Docker Images:** 
+      After the build process completes without errors, you can check if your image is listed among the Docker images on your system:
+
+      ```
+      docker images
+      ```
+
+      
+
+   ![image-20240707042429233](C:\Users\Shantel\AppData\Roaming\Typora\typora-user-images\image-20240707042429233.png)
+
+
+
+
+
+### Create Docker file for FastAPI Backend
+
+**Create a Docker file for FastAPI Backend**
+
+1. **Create a directory "Backend"  for FastAPI, and navigate into the directory using the commands below:**
+
+   ```
+   mkdir fastapi-backend
+   cd fastapi-backend
+   ```
+
+2. **Create requirements.txt file**
+
+Inside the `FastAPI_Backend` directory, create a `requirements.txt` file to list all the dependencies your FastAPI project needs. At a minimum, you will need `fastapi` and `uvicorn`. You can add more dependencies as required.
+
+Create the `requirements.txt` file with the following content:
+
+```
+fastapi
+uvicorn
+```
+
+3. **Create the app directory and files**
+
+   - Inside the `FastAPI_Backend` directory, create a subdirectory called `app`:
+   - Next, create the necessary files inside the `app` directory. These include `__init__.py` and `main.py`.
+   - Create an empty `__init__.py` file with the following content:
+
+   ```
+   # app/__init__.py
+   
+   from fastapi import FastAPI
+   
+   # Initialize FastAPI app instance
+   app = FastAPI()
+   
+   # Import your main application logic
+   from . import main
+   
+   # Optionally expose components
+   __all__ = ["app"]
+   
+   ```
+
+4. **Add your fastAPI code**
+
+   Ensure your FastAPI application code is in the `app` directory. Create your `main.py` file in your app directory with the following content:
+
+   ```
+   # app/main.py
+   
+   from fastapi import FastAPI
+   
+   app = FastAPI()
+   
+   @app.get("/")
+   def read_root():
+       return {"message": "Hello, World!"}
+   
+   @app.get("/items/{item_id}")
+   def read_item(item_id: int, query_param: str = None):
+       return {"item_id": item_id, "query_param": query_param}
+   ```
+
+   ![image-20240707064300965](C:\Users\Shantel\AppData\Roaming\Typora\typora-user-images\image-20240707064300965.png)
+
+5. **Create the Dockerfile**
+
+   In the same "fastapi-backend" directory, create a ''Dockerfile", edit it in a text editor and input the following content:
+
+   ```
+   # Use an official Python runtime as a parent image
+   FROM python:3.9-slim
+   
+   # Set the working directory in the container
+   WORKDIR /app
+   
+   # Copy the requirements file into the container
+   COPY requirements.txt .
+   
+   # Install the required packages
+   RUN pip install --no-cache-dir -r requirements.txt
+   
+   # Copy the rest of the application code into the container
+   COPY . .
+   
+   # Command to run the FastAPI application using uvicorn
+   CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+   ```
+
+   ![image-20240707064422500](C:\Users\Shantel\AppData\Roaming\Typora\typora-user-images\image-20240707064422500.png)
+
+6. **Build and run the docker container**
+
+   - To build and run your Docker container, follow these commands:
+
+     ```
+     docker build -t fastapi-backend .
+     ```
+
+   - Run the Docker container
+
+     ```
+     docker run -d -p 8000:8000 fastapi-backend
+     ```
+
+   - Check if the app
+
+7. **Verify the application**
+
+   Open a web browser and navigate to `http://localhost:8000/docs`. You should see the automatically generated Swagger UI for your FastAPI application.
+
+   ![Screenshot (411)](C:\Users\Shantel\Pictures\Screenshots\Screenshot (411).png)
+
+
+
+#### Configure Traefik and Database
+
+**Traefik and Database Configuration**
+
+Creating a `docker-compose.yml` file in the root directory for configuring Traefik serves the purpose of defining and orchestrating multiple Docker containers. This configuration helps in managing the deployment, scaling, and networking of your web application components, including the frontend, backend, and reverse proxy services.
+
+- Edit docker-compose.yml file and input the following content... The combined `docker-compose.yml` file below includes all necessary services: Traefik for reverse proxy, React frontend, FastAPI backend, PostgreSQL database, and Adminer for database management.
+
+```
+version: '3.7'
+
+services:
+  traefik:
+    image: traefik:v2.5
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+  react-frontend:
+    image: react-frontend
+    labels:
+      - "traefik.http.routers.react-frontend.rule=Host(`yourdomain.com`)"
+      - "traefik.http.services.react-frontend.loadbalancer.server.port=80"
+    networks:
+      - web
+
+  fastapi-backend:
+    image: fastapi-backend
+    labels:
+      - "traefik.http.routers.fastapi-backend.rule=Host(`yourdomain.com`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.fastapi-backend.entrypoints=websecure"
+      - "traefik.http.services.fastapi-backend.loadbalancer.server.port=8000"
+    networks:
+      - web
+
+  db:
+    image: postgres:13
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydatabase
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - db-network
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    ports:
+      - 8080:8080
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+    networks:
+      - db-network
+
+volumes:
+  postgres-data:
+
+networks:
+  web:
+  db-network:
+
+```
+
+![Screenshot (413)](C:\Users\Shantel\Pictures\Screenshots\Screenshot (413).png)
+
+### Adminer Setup
+
+1. Ensure that the `adminer` service is configu
