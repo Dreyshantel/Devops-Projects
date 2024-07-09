@@ -78,7 +78,7 @@ This project is a documentation guide on how to deploy a full stack web applicat
 
       - tsconfig.json:
 
-   ​          Open tsconfig.json and input the following content:
+            Open tsconfig.json and input the following content:
 
    ```
    {
@@ -183,10 +183,119 @@ This project is a documentation guide on how to deploy a full stack web applicat
    }),
    ```
 
-   
+   **biome.json**
 
-   **Update .gitignore:** 
-   Ensure that your `.gitignore` file includes common ignore patterns.
+   - Create a file 'biome.json' and paste the following content below in the file:
+
+     ```
+     {
+       "$schema": "https://biomejs.dev/schemas/1.6.1/schema.json",
+       "organizeImports": {
+         "enabled": true
+       },
+       "files": {
+         "ignore": ["node_modules", "src/routeTree.gen.ts"]
+       },
+       "linter": {
+         "enabled": true,
+         "rules": {
+           "recommended": true,
+           "suspicious": {
+             "noExplicitAny": "off",
+             "noArrayIndexKey": "off"
+           },
+           "style": {
+             "noNonNullAssertion": "off"
+           }
+         }
+       },
+       "formatter": {
+         "indentStyle": "space"
+       },
+       "javascript": {
+         "formatter": {
+           "quoteStyle": "double",
+           "semicolons": "asNeeded"
+         }
+       },
+       "typescript": {
+         "formatter": {
+           "quoteStyle": "double",
+           "semicolons": "asNeeded"
+         }
+       }
+     }
+     ```
+
+     **modify-openapi-operationids.js**
+
+   - Create a ' modify-openapi-operationids.js' config file and paste the following content below:
+
+     ```
+     import * as fs from 'node:fs';
+     
+     /**
+      * Modify the OpenAPI file to remove the first tag from operationId if it starts with it.
+      *
+      * @param {string} filePath - The path to the OpenAPI JSON file.
+      */
+     async function modifyOpenAPIFile(filePath) {
+       try {
+         // Read the OpenAPI file
+         const data = await fs.promises.readFile(filePath, 'utf8');
+         const openapiContent = JSON.parse(data);
+     
+         // Check if paths exist in the OpenAPI content
+         if (!openapiContent.paths) {
+           throw new Error('Invalid OpenAPI format: Missing paths');
+         }
+     
+         // Iterate through the paths and modify operationIds
+         const paths = openapiContent.paths;
+         for (const pathKey of Object.keys(paths)) {
+           const pathData = paths[pathKey];
+           for (const method of Object.keys(pathData)) {
+             const operation = pathData[method];
+             if (operation.tags && operation.tags.length > 0) {
+               const tag = operation.tags[0];
+               const operationId = operation.operationId;
+     
+               // Check if operationId is defined
+               if (!operationId) {
+                 console.warn(`No operationId found for ${method.toUpperCase()} ${pathKey}`);
+                 continue;
+               }
+     
+               const toRemove = `${tag}-`;
+               if (operationId.startsWith(toRemove)) {
+                 const newOperationId = operationId.substring(toRemove.length);
+                 operation.operationId = newOperationId;
+                 console.log(`Modified operationId for ${method.toUpperCase()} ${pathKey} from '${operationId}' to '${newOperationId}'`);
+               }
+             }
+           }
+         }
+     
+         // Write the modified content back to the file
+         await fs.promises.writeFile(filePath, JSON.stringify(openapiContent, null, 2));
+         console.log('File successfully modified');
+       } catch (err) {
+         console.error('Error:', err.message);
+         console.error('Stack:', err.stack);
+       }
+     }
+     
+     // Define the file path and modify the OpenAPI file
+     const filePath = './openapi.json';
+     modifyOpenAPIFile(filePath);
+     ```
+
+     
+
+     
+
+   - **Update .gitignore:** 
+     Ensure that your `.gitignore` file includes common ignore patterns.
 
    - edit .gitignore file and paste the following content below into the file:
 
